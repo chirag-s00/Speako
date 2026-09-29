@@ -1,5 +1,5 @@
 {
-  "name": "Speako",
+  "name": "speako",
   "private": true,
   "scripts": {
     "build": "turbo run build",
