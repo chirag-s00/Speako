@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User {
+  id            String    @id @default(uuid())  @db.Uuid
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  drills Drill[]
+  
+  @@map("users")
+}
+
+model Drill {
+  id            String    @id @default(uuid())  @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  mode          String
+  prompt        String?
+  audioKey      String    @unique @map("audio_key")
+  durationSec   Int?      @map("duration_sec")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs Job[]
+  result Result?
+
+  @@index([userId,createdAt])
+  @@map("drills")
+}
+
+enum JobStatus {
+  pending 
+  success
+  failed
+}
+
+model Job {
+  id            String    @id  @default(uuid()) @db.Uuid
+  drillId       String    @map("drill_id")  @db.Uuid
+  status        JobStatus @default(pending)
+  attempts      Int       @default(0)
+  error         String?  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  startedAt     DateTime? @map("started_at")
+  finishedAt    DateTime? @map("finished_at")
+
+  drill Drill @relation(fields: [drillId], references: [id], onDelete: Cascade)
+
+  @@index([drillId])
+  @@index([status])
+  @@map("jobs")
+}
+
+model Result {
+  id            String    @id @default(uuid())  @db.Uuid
+  drillId       String    @unique @map("drill_id")  @db.Uuid
+  transcript    String
+  scores        Json
+  tips          Json
+  fillerEvents  Json      @map("filler_events")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  drill Drill @relation(fields: [drillId], references: [id], onDelete: Cascade)
+  @@map("results")
+
+}
