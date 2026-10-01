@@ -1,12 +1,24 @@
 {
-  "name": "db",
+  "name": "@speako/db",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@prisma/cli-engine": "^0.6.2",
+    "@types/bun": "latest",
+    "@types/node": "^26.6.3",
+    "prettier": "^3.9.9",
+    "prettier-plugin-prisma": "^5.0.0",
+    "prisma": "^8.0.0-rc.19"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "scripts": {
+    "contract:emit": "prisma contract emit"
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "^8.0.0-rc.13",
+    "dotenv": "^18.0.4"
   }
 }
