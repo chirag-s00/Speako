@@ -10,19 +10,26 @@
     "lint": "eslint"
   },
   "devDependencies": {
+    "@speako/common": "workspace:*",
+    "@speako/db": "workspace:*",
     "@types/bun": "latest",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.3",
-    "tsx": "^4.23.15",
-    "@speako/db": "workspace:*",
-    "@speako/common": "workspace:*"
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "jsonwebtoken": "^9.0.3",
+    "tsx": "^4.23.15"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "argon2": "^0.45.1",
     "dotenv": "^18.0.4",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1"
   }
 }
