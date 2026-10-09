@@ -1,11 +1,8 @@
-	{
-  "extends": "@repo/typescript-config/react-library.json",
-	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"@speako/ui/*": ["./src/*"]
-		}
-	},
-	"include": ["."],
-	"exclude": ["node_modules", "dist"]
+{
+  "extends": "@speako/typescript-config/react-library.json",
+  "compilerOptions": {
+    "paths": { "@speako/ui/*": ["./src/*"] }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

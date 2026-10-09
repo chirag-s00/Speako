@@ -11,10 +11,10 @@
 	},
 	"iconLibrary": "lucide",
 	"aliases": {
-		"components": "@hypercore/ui/components",
-		"utils": "@hypercore/ui/lib/utils",
-		"ui": "@hypercore/ui/components",
-		"lib": "@hypercore/ui/lib",
-		"hooks": "@hypercore/ui/hooks"
+		"components": "@speako/ui/components",
+		"utils": "@speako/ui/lib/utils",
+		"ui": "@speako/ui/components",
+		"lib": "@speako/ui/lib",
+		"hooks": "@speako/ui/hooks"
 	}
 }

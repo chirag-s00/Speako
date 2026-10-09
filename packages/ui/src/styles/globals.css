@@ -1,0 +1,277 @@
+@import "tailwindcss";
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../../../components/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@import "tw-animate-css";
+@import "tailwind-scrollbar-hide/v4";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Geist — https://vercel.com/geist/colors (light) */
+  --ds-background-100: #ffffff;
+  --ds-background-200: #fafafa;
+  --ds-gray-100: #f2f2f2;
+  --ds-gray-200: #ebebeb;
+  --ds-gray-300: #e6e6e6;
+  --ds-gray-400: #ebebeb;
+  --ds-gray-500: #c9c9c9;
+  --ds-gray-600: #a8a8a8;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #666666;
+  --ds-gray-1000: #171717;
+  --ds-blue-100: #f0f7ff;
+  --ds-blue-200: #ebf5ff;
+  --ds-blue-300: #e0f0ff;
+  --ds-blue-400: #cce6ff;
+  --ds-blue-500: #99ceff;
+  --ds-blue-600: #52aeff;
+  --ds-blue-700: #0072f5;
+  --ds-blue-800: #0062d1;
+  --ds-blue-900: #0068d6;
+  --ds-blue-1000: #00254d;
+  --ds-red-100: #fff0f0;
+  --ds-red-200: #ffebeb;
+  --ds-red-300: #ffe5e5;
+  --ds-red-400: #fdd8d8;
+  --ds-red-500: #f8b9b9;
+  --ds-red-600: #f87275;
+  --ds-red-700: #e5484d;
+  --ds-red-800: #da2f35;
+  --ds-red-900: #cb2a2f;
+  --ds-red-1000: #391417;
+  --ds-amber-100: #fff6e5;
+  --ds-amber-200: #fff4d6;
+  --ds-amber-300: #fef0cd;
+  --ds-amber-400: #ffdd8f;
+  --ds-amber-500: #ffc96b;
+  --ds-amber-600: #f5b047;
+  --ds-amber-700: #ffb224;
+  --ds-amber-800: #ff990a;
+  --ds-amber-900: #a35200;
+  --ds-amber-1000: #4e2009;
+  --ds-green-100: #effbef;
+  --ds-green-200: #ebfaeb;
+  --ds-green-300: #daf6da;
+  --ds-green-400: #c6f1c7;
+  --ds-green-500: #99e69e;
+  --ds-green-600: #6cda75;
+  --ds-green-700: #45a557;
+  --ds-green-800: #398e4a;
+  --ds-green-900: #297a3a;
+  --ds-green-1000: #1b311e;
+  --ds-teal-100: #eefcf9;
+  --ds-teal-200: #e5faf6;
+  --ds-teal-300: #d4f7f0;
+  --ds-teal-400: #bef4eb;
+  --ds-teal-500: #86ead9;
+  --ds-teal-600: #45dec5;
+  --ds-teal-700: #12a594;
+  --ds-teal-800: #0d8c7d;
+  --ds-teal-900: #067a6e;
+  --ds-teal-1000: #073c34;
+  --ds-success: var(--ds-green-700);
+  --ds-error: var(--ds-red-700);
+  --ds-warning: var(--ds-amber-700);
+  --ds-info: var(--ds-blue-700);
+
+  /* Status accents — solid color + subtle pill bg/border (light) */
+  --status-success: #1a9338;
+  --status-success-bg: #effbef;
+  --status-success-border: #c6f1c7;
+  --status-info: #0091ff;
+  --status-info-bg: #f0f7ff;
+  --status-info-border: #cce6ff;
+  --status-warning: #e79c13;
+  --status-warning-bg: #fff6e5;
+  --status-warning-border: #ffdd8f;
+  --status-danger: #e5484d;
+  --status-danger-bg: #fff0f0;
+  --status-danger-border: #fdd8d8;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+
+  /* Geist — dark */
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #000000;
+  --ds-gray-100: #1a1a1a;
+  --ds-gray-200: #1f1f1f;
+  --ds-gray-300: #292929;
+  --ds-gray-400: #2e2e2e;
+  --ds-gray-500: #454545;
+  --ds-gray-600: #878787;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #a1a1a1;
+  --ds-gray-1000: #ededed;
+  --ds-blue-900: #52a8ff;
+  --ds-blue-1000: #ebf6ff;
+  --ds-red-100: #2a1314;
+  --ds-red-900: #ff6166;
+  --ds-red-1000: #feecee;
+  --ds-amber-100: #291800;
+  --ds-amber-900: #ff990a;
+  --ds-amber-1000: #fef3dc;
+  --ds-green-100: #0b2212;
+  --ds-green-200: #0f2e18;
+  --ds-green-300: #12361b;
+  --ds-green-400: #0c451b;
+  --ds-green-500: #126426;
+  --ds-green-600: #1a9338;
+  --ds-green-700: #45a557;
+  --ds-green-800: #398e4a;
+  --ds-green-900: #62c073;
+  --ds-green-1000: #e5fbea;
+
+  /* Status accents — solid color + subtle pill bg/border (dark) */
+  --status-success: #62c073;
+  --status-success-bg: #0b2212;
+  --status-success-border: #0c451b;
+  --status-info: #52a8ff;
+  --status-info-bg: #0f1c2e;
+  --status-info-border: #0d3868;
+  --status-warning: #ff990a;
+  --status-warning-bg: #291800;
+  --status-warning-border: #573300;
+  --status-danger: #ff6166;
+  --status-danger-bg: #2a1314;
+  --status-danger-border: #671e21;
+}
+
+@theme inline {
+  --font-sans: var(--font-switzer), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-switzer), ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --animate-grid: grid 15s linear infinite;
+  @keyframes grid {
+    0% {
+      transform: translateY(-50%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*
+https://www.bengubler.com/posts/2024-07-02-radix-shadcn-dropdown-trigger-width
+*/
+@layer utilities {
+  .dropdown-content-width-full {
+    width: var(--radix-dropdown-menu-trigger-width);
+    max-height: var(--radix-dropdown-menu-content-available-height);
+  }
+}

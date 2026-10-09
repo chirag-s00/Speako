@@ -2,7 +2,7 @@ import {ZodType} from 'zod';
 import z from 'zod';
 import express from 'express';
 
-export const validate = (schema:ZodType) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const validate = <T>(schema:ZodType<T,any,any>) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
         const result = schema.safeParse(req.body);
         if (!result.success) {
             return res.status(400).json({error: "Invalid input",

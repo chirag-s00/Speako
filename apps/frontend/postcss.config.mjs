@@ -1,0 +1,1 @@
+export { postcssConfig as default } from "@speako/ui/postcss.config";
