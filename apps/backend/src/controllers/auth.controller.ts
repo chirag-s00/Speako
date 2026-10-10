@@ -23,11 +23,11 @@ export async function register(req: express.Request, res: express.Response) {
         const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
 
 
-        await prisma.user.create({
-            data: { email,passwordHash: passwordHash, username },
+        const newUser = await prisma.user.create({
+            data: { email,passwordHash: passwordHash, username }, select: { id: true, username: true },
         })
 
-        return res.status(201).json({ message: "User registered successfully"});
+        return res.status(201).json({ message: "User registered successfully", user: { id: newUser.id, username: newUser.username } });
     } catch (error) {
          if (
             error instanceof Prisma.PrismaClientKnownRequestError &&

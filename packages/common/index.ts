@@ -6,10 +6,14 @@ export const registerSchema = zod.object({
   username: zod.string().trim().min(1).max(10),
 });
 
+export type RegisterSchema = zod.infer<typeof registerSchema>;
+
 export const loginSchema = zod.object({
   email: zod.string().trim().toLowerCase().email().max(254),
   password: zod.string().min(6).max(20),
 });
+
+export type LoginSchema = zod.infer<typeof loginSchema>;
 
 export const MAX_AUDIO_SIZE = 25 * 1024 * 1024;
 
@@ -36,3 +40,14 @@ export const uploadSchema = zod.object({
   size: zod.number().int().positive().max(MAX_AUDIO_SIZE), // 25 MB
 });
 export type UploadSchema = zod.infer<typeof uploadSchema>;
+
+export const authResponseSchema = zod.object({
+  message: zod.string(),
+  user: zod
+    .object({
+      id: zod.string(),
+      username: zod.string(),
+    })
+});
+
+export type AuthResponse = zod.infer<typeof authResponseSchema>;

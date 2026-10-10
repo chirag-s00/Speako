@@ -7,7 +7,7 @@ export async function uploadAudio(audioBlob: Blob): Promise<string> {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contentType }),
+    body: JSON.stringify({ contentType: audioBlob.type, size: audioBlob.size }),
   });
 
   if (!response.ok) {

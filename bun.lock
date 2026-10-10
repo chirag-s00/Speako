@@ -42,6 +42,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "^1.8.0",
+        "@speako/common": "workspace:*",
         "@speako/ui": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "cn": "^0.4.0",
@@ -134,6 +135,7 @@
         "radix-ui": "^1.6.7",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
+        "shadcn": "^4.21.4",
         "tailwind-merge": "^3.6.0",
         "tailwind-scrollbar-hide": "^4.0.0",
         "tailwindcss": "^4.3.3",
