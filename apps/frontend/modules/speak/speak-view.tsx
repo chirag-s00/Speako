@@ -15,7 +15,7 @@ import {
 import { Button } from "@speako/ui/components/button";
 import { Card, CardContent } from "@speako/ui/components/card";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
-import { uploadAudio } from "@/modules/speak/lib/uploadAudio";
+import { submitDrill} from "@/modules/speak/lib/uploadAudio";
 
 const MAX_DURATION = 90;
 
@@ -58,16 +58,15 @@ export default function SpeakView() {
       setUploadError(null);
       setUploadedKey(null);
 
-      const key = await uploadAudio(audioBlob);
-
-      setUploadedKey(key);
-      console.log("Uploaded recording:", key);
-    } catch {
-      setUploadError("Upload failed. Please try again.");
-    } finally {
+      const response = await submitDrill(audioBlob,"practice","Describe a skill you want to learn",90)
+      console.log("Drill submitted:", response.data);
+  } catch (error) {
+      console.error("Drill submission failed:", error);
+      setUploadError("Failed to submit drill. Please try again.");
+  } finally {
       setIsUploading(false);
-    }
   }
+}
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#F7F7F5] px-4 py-10 text-zinc-900 sm:px-6">

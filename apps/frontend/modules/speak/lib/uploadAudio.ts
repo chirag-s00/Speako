@@ -1,4 +1,12 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { api } from "@/lib/api";
+import { env } from "@/lib/env";
+
+const API_URL = env.API_URL;
+
+export async function submitDrill(audioBlob: Blob, mode: String,prompt: String, durationSec: number ){
+  const key = await uploadAudio(audioBlob)
+  return api.post("/drills", {key, mode, prompt, durationSec})
+}
 
 export async function uploadAudio(audioBlob: Blob): Promise<string> {
   const contentType = audioBlob.type.split(";")[0];

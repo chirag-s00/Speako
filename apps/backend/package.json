@@ -12,6 +12,7 @@
   "devDependencies": {
     "@speako/common": "workspace:*",
     "@speako/db": "workspace:*",
+    "@types/amqplib": "^0.10.8",
     "@types/bun": "latest",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
@@ -29,6 +30,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1148.0",
     "@aws-sdk/s3-request-presigner": "^3.1148.0",
+    "amqplib": "^2.2.0",
     "argon2": "^0.45.1",
     "dotenv": "^18.0.4",
     "express": "^5.2.1",

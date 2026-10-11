@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "dotenv/config";
 
 const envSchema = z.object({
   BACKEND_SERVER_URL: z.string().url().optional(),

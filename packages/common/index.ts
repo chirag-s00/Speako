@@ -51,3 +51,10 @@ export const authResponseSchema = zod.object({
 });
 
 export type AuthResponse = zod.infer<typeof authResponseSchema>;
+
+export const drillSchema = zod.object({
+  key: zod.string().min(1),
+  mode: zod.string().min(1),
+  prompt: zod.string().optional(),
+  durationSec: zod.number().int().positive().max(300),
+});
