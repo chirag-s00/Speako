@@ -1,6 +1,7 @@
 import express from "express";
 import { objectExists, promoteUpload } from "../lib/s3";
 import { prisma } from "@speako/db/client";
+import { publishJob } from "../services/publisher";
 
 export async function drills(
   req: express.Request,
@@ -9,7 +10,6 @@ export async function drills(
   try {
     const { key, mode, prompt, durationSec } = req.body;
     const userId = req.userId!;
-
     if (
       typeof key !== "string" ||
       !key.startsWith(`tmp/${userId}/`)
