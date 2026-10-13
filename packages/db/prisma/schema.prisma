@@ -43,7 +43,8 @@ model Drill {
 }
 
 enum JobStatus {
-  pending 
+  pending
+  processing
   success
   failed
 }

@@ -1,59 +1,37 @@
-
+import { env } from "./lib/env"; // first: crashes at startup if env vars are missing
+import { prisma } from "@speako/db/client"
 import { startConsumer, stopConsumer } from "./services/consumer";
-import type { JobHandlers } from "./services/consumer";
-
-const handlers: JobHandlers = {
-  async process(message, { attempt }) {
-    console.log("🎯 Processing job:", {
-      jobId: message.jobId,
-      drillId: message.drillId,
-      audioKey: message.audioKey,
-      attempt,
-    });
-
-    // TODO: Download the audio from S3,
-    // transcribe it, calculate scores, and save the results.
-    //
-    // For now, this log only confirms that the worker
-    // received and started handling the job.
-  },
-
-  async onFailed(message, error, { attempt }) {
-    console.error("❌ Job failed permanently:", {
-      jobId: message.jobId,
-      drillId: message.drillId,
-      attempt,
-      error,
-    });
-
-    // TODO: Update the job status in your database.
-  },
-};
+import { processDrill, markJobFailed } from "./jobs/processDrill.ts";
 
 async function main() {
-  console.log("🚀 Starting speech worker...");
-
-  await startConsumer(handlers);
-
-  console.log("✅ Worker consumer started");
+  await startConsumer({
+    process: processDrill,
+    onFailed: markJobFailed,
+  });
+  console.log(`Worker started, queue: ${env.QUEUE_NAME}`);
 }
 
-main().catch((error) => {
-  console.error("Failed to start worker:", error);
-  process.exitCode = 1;
-});
+let shuttingDown = false;
 
 async function shutdown(signal: string) {
-  console.log(`Received ${signal}. Shutting down worker...`);
+  if (shuttingDown) return; // a second Ctrl+C shouldn't run this twice
+  shuttingDown = true;
+  console.log(`${signal} received, shutting down`);
 
-  try {
-    await stopConsumer();
-    process.exitCode = 0;
-  } catch (error) {
-    console.error("Error shutting down worker:", error);
-    process.exitCode = 1;
-  }
+  try{
+  await stopConsumer();        // stop taking jobs, let running ones finish
+  await prisma.$disconnect();  // then close the DB connection
+  process.exitCode = 0;
+}catch(e){
+  console.error("Error during shutdown:",e);
+  process.exitCode = 1
+}
 }
 
-process.once("SIGINT", () => void shutdown("SIGINT"));
-process.once("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
+
+main().catch((err) => {
+  console.error("Worker failed to start:", err);
+  process.exit(1);
+});
