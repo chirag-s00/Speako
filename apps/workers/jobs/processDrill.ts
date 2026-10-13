@@ -93,6 +93,7 @@ async function runPipeline(message: JobMessage): Promise<void> {
       throw new PermanentJobError("No speech detected in recording");
     }
 
+
     // 6. Objective numbers computed in code (pace, pauses, filler words).
     const { fillerEvents, ...metricsSummary } = computeMetrics(
       transcript.words,
@@ -126,6 +127,7 @@ async function runPipeline(message: JobMessage): Promise<void> {
         data: { status: "success", finishedAt: new Date(), error: null },
       }),
     ]);
+
   } finally {
     await deleteTempFile(filePath);
   }
@@ -135,6 +137,7 @@ async function runPipeline(message: JobMessage): Promise<void> {
  * Passed to startConsumer as `onFailed`. Runs once, when retries are used up
  * or a PermanentJobError was thrown.
  */
+
 export async function markJobFailed(
   message: JobMessage,
   error: unknown
