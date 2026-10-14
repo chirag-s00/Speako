@@ -19,7 +19,7 @@ function errorText(err: unknown): string {
  */
 export async function processDrill(
   message: JobMessage,
-  ctx: { attempt: number }
+  ctx: { attempt: number; signal: AbortSignal }
 ): Promise<void> {
   const { jobId } = message;
 
@@ -93,7 +93,6 @@ async function runPipeline(message: JobMessage): Promise<void> {
       throw new PermanentJobError("No speech detected in recording");
     }
 
-
     // 6. Objective numbers computed in code (pace, pauses, filler words).
     const { fillerEvents, ...metricsSummary } = computeMetrics(
       transcript.words,
@@ -129,9 +128,13 @@ async function runPipeline(message: JobMessage): Promise<void> {
     ]);
 
   } finally {
+     try {
     await deleteTempFile(filePath);
+  } catch (err) {
+    console.error("Failed to clean up temporary audio file:", err);
   }
 }
+  }
 
 /**
  * Passed to startConsumer as `onFailed`. Runs once, when retries are used up

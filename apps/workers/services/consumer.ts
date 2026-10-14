@@ -17,8 +17,14 @@ export class PermanentJobError extends Error {
 }
 
 export interface JobHandlers {
-  /** Do the work. Throw to fail; throw PermanentJobError to skip the retries. */
-  process(message: JobMessage, ctx: { attempt: number }): Promise<void>;
+  /**
+   * Do the work. Throw to fail; throw PermanentJobError to skip the retries.
+   * Pass ctx.signal to your fetch/ASR/storage calls so a timed-out job actually stops.
+   */
+  process(
+    message: JobMessage,
+    ctx: { attempt: number; signal: AbortSignal }
+  ): Promise<void>;
   /** Called once when a job has failed for good (permanent error or retries used up). */
   onFailed(message: JobMessage, error: unknown, ctx: { attempt: number }): Promise<void>;
 }
@@ -26,6 +32,10 @@ export interface JobHandlers {
 const PREFETCH = 2; // jobs processed at the same time by this worker
 const RECONNECT_DELAY_MS = 5_000;
 const SHUTDOWN_GRACE_MS = 30_000;
+// Must stay well below RabbitMQ's consumer_timeout (30 min by default), otherwise the broker
+// closes the channel before we get to time the job out ourselves.
+const JOB_TIMEOUT_MS = 10 * 60_000;
+const RETRY_PUBLISH_TIMEOUT_MS = 5_000;
 
 const names = queueNames(env.QUEUE_NAME);
 
@@ -33,12 +43,30 @@ let stopping = false;
 let connection: amqp.ChannelModel | null = null;
 let channel: amqp.ConfirmChannel | null = null;
 let consumerTag: string | null = null;
+let reconnectTimer: NodeJS.Timeout | null = null;
 let inFlight = 0;
 let idleWaiters: Array<() => void> = [];
 
 export async function startConsumer(handlers: JobHandlers): Promise<void> {
+  // Fail loudly at boot instead of hot-looping on a config mistake later
+  if (names.retry.length < MAX_ATTEMPTS - 1) {
+    throw new Error(
+      `Misconfigured retry queues: need at least ${MAX_ATTEMPTS - 1} for MAX_ATTEMPTS=${MAX_ATTEMPTS}, got ${names.retry.length}`
+    );
+  }
+
   stopping = false;
   await connectAndConsume(handlers);
+}
+
+// One scheduler for every reconnect path, so we never end up with two consumers
+function scheduleReconnect(handlers: JobHandlers): void {
+  if (stopping || reconnectTimer) return;
+  console.warn(`Reconnecting to RabbitMQ in ${RECONNECT_DELAY_MS}ms`);
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    void connectAndConsume(handlers);
+  }, RECONNECT_DELAY_MS);
 }
 
 async function connectAndConsume(handlers: JobHandlers): Promise<void> {
@@ -56,28 +84,34 @@ async function connectAndConsume(handlers: JobHandlers): Promise<void> {
       connection = null;
       channel = null;
       consumerTag = null;
-      if (!stopping) {
-        console.warn(`RabbitMQ connection closed, reconnecting in ${RECONNECT_DELAY_MS}ms`);
-        setTimeout(() => void connectAndConsume(handlers), RECONNECT_DELAY_MS);
-      }
+      scheduleReconnect(handlers);
     });
 
     const ch = await current.createConfirmChannel();
     ch.on("error", (err) => console.error("RabbitMQ channel error:", err));
+    // A channel can die while the connection stays healthy (consumer_timeout, bad ack, ...).
+    // Recycle the whole connection so the close handler above reconnects us.
+    ch.on("close", () => {
+      if (connection === current) {
+        console.warn("RabbitMQ channel closed, recycling connection");
+        current.close().catch(() => {});
+      }
+    });
     channel = ch;
 
     await assertJobTopology(ch, env.QUEUE_NAME);
     await ch.prefetch(PREFETCH);
 
     const { consumerTag: tag } = await ch.consume(names.main, (msg) => {
-    //   if (msg) void handleMessage(ch, msg, handlers);
-    if (!msg) return;
-
-  console.log("📩 RabbitMQ delivered a message to the worker");
-  console.log("Message body:", msg.content.toString());
-
-  void handleMessage(ch, msg, handlers);
-  //till here
+      if (!msg) {
+        // Broker cancelled our consumer (queue deleted, node failover, ...)
+        console.warn("Consumer cancelled by broker, recycling connection");
+        if (connection === current) current.close().catch(() => {});
+        return;
+      }
+      void handleMessage(ch, msg, handlers).catch((err) =>
+        console.error("Unexpected handleMessage failure:", err)
+      );
     });
     consumerTag = tag;
 
@@ -92,9 +126,41 @@ async function connectAndConsume(handlers: JobHandlers): Promise<void> {
     consumerTag = null;
     if (failed) await failed.close().catch(() => {});
 
-    if (!stopping) {
-      setTimeout(() => void connectAndConsume(handlers), RECONNECT_DELAY_MS);
-    }
+    scheduleReconnect(handlers);
+  }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+async function runJob(
+  handlers: JobHandlers,
+  message: JobMessage,
+  attempt: number
+): Promise<void> {
+  const ac = new AbortController();
+  let timer: NodeJS.Timeout | undefined;
+
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(`Job timed out after ${JOB_TIMEOUT_MS}ms`);
+      ac.abort(err); // tell the handler to stop
+      reject(err); // and stop waiting even if it ignores the signal
+    }, JOB_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([
+      handlers.process(message, { attempt, signal: ac.signal }),
+      timeout,
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -115,18 +181,15 @@ async function handleMessage(
       return;
     }
 
-    const retryCount = Number(msg.properties.headers?.["x-retry-count"] ?? 0);
+    const rawRetryCount = Number(msg.properties.headers?.["x-retry-count"] ?? 0);
+    const retryCount =
+      Number.isInteger(rawRetryCount) && rawRetryCount >= 0 ? rawRetryCount : 0;
     const attempt = retryCount + 1;
-    //from here
-    console.log("✅ Job received:", {
-  jobId: message.jobId,
-  drillId: message.drillId,
-  attempt,
-});
-//till here
+
+    console.log(`Job ${message.jobId} started (attempt ${attempt})`);
 
     try {
-      await handlers.process(message, { attempt });
+      await runJob(handlers, message, attempt);
       safeAck(ch, msg);
     } catch (err) {
       await handleFailure(ch, msg, message, err, attempt, handlers);
@@ -169,13 +232,16 @@ async function handleFailure(
   console.warn(`Job ${message.jobId} failed on attempt ${attempt}, scheduling retry:`, error);
 
   try {
-    const retryQueue = names.retry[attempt - 1];
-
-    if (!retryQueue) {
-        throw new Error(`Retry queue not found for attempt ${attempt}`);
-    }
     // Attempt 1 -> retry queue 0, attempt 2 -> retry queue 1, ...
-    await publishToRetryQueue(ch, retryQueue, msg, attempt);
+    const retryQueue = names.retry[attempt - 1];
+    if (!retryQueue) {
+      throw new Error(`Retry queue not found for attempt ${attempt}`);
+    }
+    await withTimeout(
+      publishToRetryQueue(ch, retryQueue, msg, attempt),
+      RETRY_PUBLISH_TIMEOUT_MS,
+      "Retry publish"
+    );
     safeAck(ch, msg); // only ack the original once the retry copy is safely queued
   } catch (publishError) {
     console.error(`Could not schedule retry for job ${message.jobId}:`, publishError);
@@ -225,6 +291,11 @@ function safeNack(ch: amqp.Channel, msg: amqp.ConsumeMessage, requeue = false) {
 export async function stopConsumer(): Promise<void> {
   stopping = true;
 
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+
   const ch = channel;
   const conn = connection;
   const tag = consumerTag;
@@ -240,13 +311,17 @@ export async function stopConsumer(): Promise<void> {
 
   // Let running jobs finish, but not forever
   if (inFlight > 0) {
+    let graceTimer: NodeJS.Timeout | undefined;
     await Promise.race([
       new Promise<void>((resolve) => idleWaiters.push(resolve)),
-      new Promise<void>((resolve) => setTimeout(resolve, SHUTDOWN_GRACE_MS)),
+      new Promise<void>((resolve) => {
+        graceTimer = setTimeout(resolve, SHUTDOWN_GRACE_MS);
+      }),
     ]);
+    clearTimeout(graceTimer);
   }
 
-  connection = null; // so the close handler doesn't try to reconnect
+  connection = null; // so the close handlers don't try to reconnect or recycle
   channel = null;
   consumerTag = null;
 

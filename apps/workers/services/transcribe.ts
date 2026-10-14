@@ -8,7 +8,7 @@ const LANGUAGE_CODES = ["en-IN"];
 const REQUEST_TIMEOUT_MS = 120_000; // a hung call becomes a retryable error instead of blocking a worker slot
 
 const ai = new GoogleGenAI({
-  apiKey: env.TRANSCRIBE_KEY,
+  apiKey: env.GEMINI_KEY,
   httpOptions: { timeout: REQUEST_TIMEOUT_MS },
 });
 
