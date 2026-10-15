@@ -71,6 +71,7 @@ model Result {
   drillId       String    @unique @map("drill_id")  @db.Uuid
   transcript    String
   scores        Json
+  metrics       Json
   tips          Json
   fillerEvents  Json      @map("filler_events")
   createdAt     DateTime  @default(now()) @map("created_at")

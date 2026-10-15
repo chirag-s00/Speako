@@ -14,3 +14,20 @@ export const jobMessageSchema = zod.object({
 })
 
 export type JobMessage = zod.infer<typeof jobMessageSchema>;
+
+
+
+const scoreSchema = zod.number().int().min(0).max(100);
+
+export const feedbackSchema = zod.object({
+  scores: zod.object({
+    pacing: scoreSchema,
+    fluency: scoreSchema,
+    clarity: scoreSchema,
+    coherence: scoreSchema,
+    vocabulary: scoreSchema,
+  }),
+  tips: zod.array(zod.string().min(1)).min(3).max(5),
+});
+
+export type Feedback = zod.infer<typeof feedbackSchema>;

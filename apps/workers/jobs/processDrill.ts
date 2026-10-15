@@ -110,7 +110,8 @@ async function runPipeline(message: JobMessage): Promise<void> {
     // 8. Save the result and mark the job done in one transaction.
     const resultData = {
       transcript: transcript.text,
-      scores: { ...feedback.scores, metrics: metricsSummary },
+      scores: feedback.scores,
+      metrics: metricsSummary,
       tips: feedback.tips,
       fillerEvents,
     };
