@@ -16,6 +16,7 @@ import { Button } from "@speako/ui/components/button";
 import { Card, CardContent } from "@speako/ui/components/card";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { submitDrill} from "@/modules/speak/lib/uploadAudio";
+import { useRouter } from "next/navigation";
 
 const MAX_DURATION = 90;
 
@@ -26,6 +27,9 @@ function formatTime(seconds: number) {
 }
 
 export default function SpeakView() {
+
+  const router = useRouter();
+
   const {
     isRecording,
     elapsed,
@@ -59,7 +63,7 @@ export default function SpeakView() {
       setUploadedKey(null);
 
       const response = await submitDrill(audioBlob,"practice","Describe a skill you want to learn",90)
-      console.log("Drill submitted:", response.data);
+      router.push(`/jobs/${response.jobId}`)
   } catch (error) {
       console.error("Drill submission failed:", error);
       setUploadError("Failed to submit drill. Please try again.");

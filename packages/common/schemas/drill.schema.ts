@@ -15,6 +15,12 @@ export const jobMessageSchema = zod.object({
 
 export type JobMessage = zod.infer<typeof jobMessageSchema>;
 
+export const drillResponse = zod.object({
+  drillId: zod.string().uuid().min(1),
+  jobId: zod.string().uuid().min(1)
+})
+
+export type drillResponse = zod.infer<typeof drillResponse>
 
 
 const scoreSchema = zod.number().int().min(0).max(100);
@@ -31,3 +37,8 @@ export const feedbackSchema = zod.object({
 });
 
 export type Feedback = zod.infer<typeof feedbackSchema>;
+
+
+export const jobIdSchema = zod.string().uuid();
+
+export type jobIdType = zod.infer<typeof jobIdSchema>
