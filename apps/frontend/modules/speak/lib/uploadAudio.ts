@@ -6,7 +6,7 @@ const API_URL = env.API_URL;
 
 export async function submitDrill(audioBlob: Blob, mode: String,prompt: String, durationSec: number ): Promise<drillResponse>{
   const key = await uploadAudio(audioBlob)
-  return api.post("/drills", {key, mode, prompt, durationSec})
+  return api.post("/api/drills", {key, mode, prompt, durationSec})
 }
 
 export async function uploadAudio(audioBlob: Blob): Promise<string> {

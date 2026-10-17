@@ -10,12 +10,16 @@ import {
   Clock3,
   CheckCircle2,
   LoaderCircle,
+  Upload,
 } from "lucide-react";
 
 import { Button } from "@speako/ui/components/button";
 import { Card, CardContent } from "@speako/ui/components/card";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { submitDrill} from "@/modules/speak/lib/uploadAudio";
+
+const [isUploading, setIsUploading] = useState(false);
+const [uploadedKey, setUploadedKey] = useState<string | null>(null);
 import { useRouter } from "next/navigation";
 
 const MAX_DURATION = 90;

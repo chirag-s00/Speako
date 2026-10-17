@@ -8,7 +8,6 @@ export async function drills( req: express.Request,res: express.Response) {
   try {
     const { key, mode, prompt, durationSec } = req.body;
     const userId = req.userId;
-    const userid = req.userId
     if(!userId){
       return res.status(404).json({ error: "Invalid User"})
     }
