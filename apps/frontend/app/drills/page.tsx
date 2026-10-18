@@ -3,32 +3,26 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
+import { useSound } from "@/hooks/use-sound";
 import { submitDrill } from "@/modules/speak/lib/uploadAudio";
 import { Button } from "@speako/ui/components/button";
+import { ease, mod, at, buildReel } from "@/modules/speak/lib/reel";
+import { DATA } from "@/modules/speak/data/prompts";
+import { fmt } from "@/modules/speak/lib/format";
 import type { LucideIcon } from "lucide-react";
 import {
   Home,
   Layers,
-  MessageSquare,
   BarChart3,
   User,
   Mic,
   MicOff,
   ArrowRight,
-  Coffee,
-  Briefcase,
-  Plane,
-  Users,
-  Heart,
-  Brain,
-  Code2,
-  Target,
   Volume2,
   VolumeX,
   RotateCw,
   RotateCcw,
   Upload,
-  AudioLines,
   LoaderCircle,
   CheckCircle2,
 } from "lucide-react";
@@ -36,34 +30,7 @@ import {
 /* ---------- Types ---------- */
 
 type Mode = "drills" | "interview";
-type PromptTuple = readonly [text: string, description: string];
 
-interface Category {
-  icon: LucideIcon;
-  prompts: readonly PromptTuple[];
-}
-
-interface ModeData {
-  title: string;
-  sub: string;
-  categories: Record<string, Category>;
-}
-
-interface ReelItem {
-  cat: string;
-  text: string;
-  desc: string;
-  Icon: LucideIcon;
-}
-
-interface Sound {
-  muted: boolean;
-  setMuted: (muted: boolean) => void;
-  unlock: () => void;
-  start: () => void;
-  tick: (progress?: number) => void;
-  land: () => void;
-}
 
 /* ---------- Constants ---------- */
 
@@ -71,160 +38,7 @@ const MAX_DURATION = 90;
 const CARD_W = 190;
 const RANDOM = "Random Mode";
 
-/* ---------- Data ---------- */
 
-const DATA: Record<Mode, ModeData> = {
-  drills: {
-    title: "Drills",
-    sub: "Spin the wheel, get a random prompt, and start speaking.",
-    categories: {
-      "Daily Life": {
-        icon: Coffee,
-        prompts: [
-          [
-            "Talk about your daily routine.",
-            "Describe your typical day, what you do, and how you spend your time.",
-          ],
-          [
-            "Describe your morning ritual.",
-            "Walk through the first hour after you wake up.",
-          ],
-          [
-            "Explain your favorite meal.",
-            "What is in it, who makes it, and why do you love it?",
-          ],
-        ],
-      },
-      Travel: {
-        icon: Plane,
-        prompts: [
-          [
-            "Describe your ideal vacation.",
-            "Where would you go, who with, and what would you do?",
-          ],
-          [
-            "Tell us about a trip you remember.",
-            "What happened, and why has it stayed with you?",
-          ],
-        ],
-      },
-      Work: {
-        icon: Briefcase,
-        prompts: [
-          [
-            "Discuss your future career.",
-            "Where do you see yourself in five years, and why?",
-          ],
-          [
-            "Describe your ideal workday.",
-            "Think about people, tasks, and environment.",
-          ],
-        ],
-      },
-      Social: {
-        icon: Users,
-        prompts: [
-          [
-            "Talk about your family.",
-            "Who is in it, and what makes them special to you?",
-          ],
-          [
-            "Describe your best friend.",
-            "How did you meet and what keeps you close?",
-          ],
-        ],
-      },
-      Hobbies: {
-        icon: Heart,
-        prompts: [
-          [
-            "Share your hobbies.",
-            "What do you do for fun and how did you start?",
-          ],
-          [
-            "Teach us something you love.",
-            "Explain a skill or pastime to a complete beginner.",
-          ],
-        ],
-      },
-    },
-  },
-  interview: {
-    title: "Interview",
-    sub: "Spin for a real interview question and answer out loud.",
-    categories: {
-      Behavioral: {
-        icon: Users,
-        prompts: [
-          [
-            "Tell me about yourself.",
-            "Give a 60-second summary of your background and what drives you.",
-          ],
-          [
-            "Describe a time you failed.",
-            "What happened, what did you learn, what changed afterward?",
-          ],
-          [
-            "Tell me about a conflict at work.",
-            "How did you handle it and what was the outcome?",
-          ],
-        ],
-      },
-      Technical: {
-        icon: Code2,
-        prompts: [
-          [
-            "Explain a project you're proud of.",
-            "Cover the problem, your role, the decisions, and the result.",
-          ],
-          [
-            "Walk through how you debug.",
-            "Describe your process for a bug you can't reproduce.",
-          ],
-        ],
-      },
-      HR: {
-        icon: Briefcase,
-        prompts: [
-          [
-            "Why do you want this job?",
-            "Connect the role to your goals and strengths.",
-          ],
-          [
-            "What are your strengths and weaknesses?",
-            "Be honest and give a concrete example for each.",
-          ],
-        ],
-      },
-      Situational: {
-        icon: Target,
-        prompts: [
-          [
-            "You miss a deadline. What do you do?",
-            "Explain how you communicate and recover.",
-          ],
-          [
-            "Prioritize three urgent tasks.",
-            "How do you decide what comes first?",
-          ],
-        ],
-      },
-      Mindset: {
-        icon: Brain,
-        prompts: [
-          [
-            "Where do you see yourself in 5 years?",
-            "Be specific about skills, impact, and growth.",
-          ],
-          [
-            "How do you handle pressure?",
-            "Share a real moment and what you did.",
-          ],
-        ],
-      },
-    },
-  },
-};
 
 const MODES: ReadonlyArray<{ id: Mode; label: string }> = [
   { id: "drills", label: "Practice drills" },
@@ -238,162 +52,14 @@ const NAV: ReadonlyArray<{
 }> = [
   { Icon: Home, label: "Home" },
   { Icon: Layers, label: "Drills", active: true },
-  { Icon: MessageSquare, label: "Practice" },
   { Icon: BarChart3, label: "Progress" },
   { Icon: User, label: "Profile" },
 ];
 
-/* ---------- Helpers ---------- */
 
-const mod = (n: number, m: number): number => ((n % m) + m) % m;
 
-const ease = (t: number): number => 1 - Math.pow(1 - t, 4);
 
-const at = (reel: readonly ReelItem[], i: number): ReelItem => {
-  const item = reel[mod(i, reel.length)];
 
-  if (!item) throw new Error("Reel is empty");
-
-  return item;
-};
-
-const fmt = (s: number): string =>
-  `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(
-    2,
-    "0",
-  )}`;
-
-const flatten = (mode: Mode): ReelItem[] =>
-  Object.entries(DATA[mode].categories).flatMap(([cat, category]) =>
-    category.prompts.map(([text, desc]): ReelItem => ({
-      cat,
-      text,
-      desc,
-      Icon: category.icon,
-    })),
-  );
-
-const buildReel = (mode: Mode): ReelItem[] => {
-  const all = flatten(mode);
-
-  const byCat: ReelItem[][] = Object.keys(DATA[mode].categories).map(
-    (category) => all.filter((item) => item.cat === category),
-  );
-
-  const out: ReelItem[] = [];
-  const longest = Math.max(...byCat.map((group) => group.length));
-
-  for (let i = 0; i < longest; i++) {
-    for (const group of byCat) {
-      const item = group[i];
-
-      if (item) out.push(item);
-    }
-  }
-
-  return out;
-};
-
-/* ---------- Sound ---------- */
-
-type WebkitWindow = Window & {
-  webkitAudioContext?: typeof AudioContext;
-};
-
-function useSound(): Sound {
-  const ctx = useRef<AudioContext | null>(null);
-  const [muted, setMuted] = useState(false);
-  const mutedRef = useRef(false);
-
-  mutedRef.current = muted;
-
-  const ac = (): AudioContext => {
-    if (!ctx.current) {
-      const Ctor =
-        window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
-
-      if (!Ctor) {
-        throw new Error("Web Audio is not supported in this browser");
-      }
-
-      ctx.current = new Ctor();
-    }
-
-    if (ctx.current.state === "suspended") {
-      void ctx.current.resume();
-    }
-
-    return ctx.current;
-  };
-
-  const tone = (
-    freq: number,
-    start: number,
-    dur: number,
-    type: OscillatorType = "sine",
-    vol = 0.15,
-    slideTo?: number,
-  ): void => {
-    const audio = ac();
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(freq, audio.currentTime + start);
-
-    if (slideTo) {
-      oscillator.frequency.exponentialRampToValueAtTime(
-        slideTo,
-        audio.currentTime + start + dur,
-      );
-    }
-
-    gain.gain.setValueAtTime(vol, audio.currentTime + start);
-    gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      audio.currentTime + start + dur,
-    );
-
-    oscillator.connect(gain).connect(audio.destination);
-    oscillator.start(audio.currentTime + start);
-    oscillator.stop(audio.currentTime + start + dur + 0.02);
-  };
-
-  return {
-    muted,
-    setMuted,
-
-    unlock: () => {
-      ac();
-    },
-
-    start: () => {
-      if (mutedRef.current) return;
-
-      tone(160, 0, 0.18, "triangle", 0.3, 60);
-      tone(300, 0.08, 0.35, "sawtooth", 0.05, 900);
-    },
-
-    tick: (progress = 0) => {
-      if (mutedRef.current) return;
-
-      tone(1300 - progress * 500, 0, 0.035, "square", 0.05);
-      tone(180, 0, 0.03, "triangle", 0.12);
-    },
-
-    land: () => {
-      if (mutedRef.current) return;
-
-      tone(120, 0, 0.25, "triangle", 0.35, 50);
-
-      [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) =>
-        tone(freq, 0.12 + i * 0.08, 0.5, "sine", 0.14),
-      );
-
-      tone(1568, 0.5, 0.7, "triangle", 0.06);
-    },
-  };
-}
 
 /* ---------- Component ---------- */
 
