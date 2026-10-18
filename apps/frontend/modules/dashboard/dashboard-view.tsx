@@ -272,7 +272,7 @@ function SectionHead({
 
 /* ---------- Component ---------- */
 
-export default function HomeDashboard({
+export default function DashboardView({
   name = "Chirag",
   fullName = "Chirag S.",
   greeting = "Good evening,",

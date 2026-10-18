@@ -1,4 +1,4 @@
-import HomeDashboard from "@/modules/dashboard/dashboard-view";
+import DashboardView from "@/modules/dashboard/dashboard-view";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <HomeDashboard></HomeDashboard>;
+  return <DashboardView></DashboardView>;
 }

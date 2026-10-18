@@ -3,9 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitDrill } from "@/modules/speak/lib/uploadAudio";
-// import type { Mode } from "@/modules/speak/data/prompts";
-
-type Mode = "drills" | "interview";
+import type { Mode } from "@/modules/speak/constants";
 
 type SubmitArgs = {
   blob: Blob;
@@ -21,7 +19,6 @@ export function useDrillSubmission() {
   const [uploadedKey, setUploadedKey] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  /** Clear the result and any error, e.g. when recording again or picking a new prompt. */
   const clear = useCallback((): void => {
     setUploadedKey(null);
     setUploadError(null);
