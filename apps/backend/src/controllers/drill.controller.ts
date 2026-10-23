@@ -76,6 +76,7 @@ type JobSnapshot = {
     scores: unknown;
     tips: unknown;
     fillerEvents: unknown;
+    metrics: unknown;
   };
 };
 

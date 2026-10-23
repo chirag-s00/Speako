@@ -1,16 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BarChart3,
-  ChevronDown,
   ChevronRight,
   Flame,
-  Home,
-  Layers,
   MessageSquare,
   Mic,
   Plane,
@@ -93,19 +89,6 @@ const RECENT: Session[] = [
     Icon: Plane,
     iconClass: "from-[#3fae7f] to-[#1d6b4a] text-white",
   },
-];
-
-const NAV: ReadonlyArray<{
-  Icon: LucideIcon;
-  label: string;
-  href: string;
-  active?: boolean;
-}> = [
-  { Icon: Home, label: "Home", href: "/", active: true },
-  { Icon: Layers, label: "Drills", href: "/drills" },
-  { Icon: MessageSquare, label: "Practice", href: "/practice" },
-  { Icon: BarChart3, label: "Progress", href: "/progress" },
-  { Icon: User, label: "Profile", href: "/profile" },
 ];
 
 const WEEK = ["M", "T", "W", "T", "F", "S", "S"];
@@ -296,48 +279,6 @@ export default function DashboardView({
     .slice(0, 2);
 
   return (
-    <div className="grid min-h-screen place-items-center overflow-x-hidden bg-[#0a0b09] p-3 font-['DM_Sans',system-ui,sans-serif] text-[#efe9df] sm:p-6">
-      <style>{CSS}</style>
-
-      <div className="grid min-h-[860px] w-full max-w-[1440px] min-w-0 overflow-hidden rounded-[28px] border border-white/[.07] bg-[radial-gradient(1200px_600px_at_55%_45%,#17201a,#0b0d0b)] lg:grid-cols-[260px_minmax(0,1fr)]">
-        {/* Sidebar */}
-
-        <aside className="hidden flex-col gap-9 border-r border-white/[.07] px-[22px] py-8 lg:flex">
-          <div className="font-['Fraunces',serif] text-[30px] font-semibold tracking-tight">
-            Speako
-          </div>
-
-          <nav className="flex flex-col gap-1.5">
-            {NAV.map(({ Icon: NavIcon, label, href, active }) => (
-              <Link
-                key={label}
-                href={href}
-                className={
-                  "flex items-center gap-4 rounded-2xl px-3.5 py-4 text-left text-base " +
-                  (active
-                    ? "bg-gradient-to-r from-[#f0a65c]/30 to-[#f0a65c]/10 text-white ring-1 ring-inset ring-[#f0a65c]/20"
-                    : "text-[#cfc8bb] hover:bg-white/[.03]")
-                }
-              >
-                <NavIcon size={20} />
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="mt-auto flex items-center justify-between rounded-[18px] border border-white/[.07] bg-white/[.02] p-4">
-            <p className="font-['Fraunces',serif] text-sm leading-6 text-[#cfc8bb]">
-              “Small steps
-              <br />
-              every day lead
-              <br />
-              to big progress.”
-            </p>
-            <Wave heights={[8, 16, 10, 20, 12]} className="opacity-70" />
-          </div>
-        </aside>
-
-        {/* Main content */}
 
         <main className="grid min-w-0 gap-x-7 gap-y-5 overflow-hidden p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:py-7 lg:pl-7 lg:pr-7">
           {/* Header */}
@@ -353,22 +294,6 @@ export default function DashboardView({
               <p className="text-base leading-relaxed text-[#cfc8bb]">
                 Your voice matters. Let’s make it stronger.
               </p>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-3">
-              <button
-                aria-label="Sound"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/[.07] text-[#ffcf94]"
-              >
-                <Volume2 size={18} />
-              </button>
-              <button className="flex items-center gap-2.5 rounded-full border border-white/[.07] bg-white/[.03] py-1.5 pl-1.5 pr-3.5 text-sm text-[#efe9df] hover:bg-white/[.06]">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#f0a65c]/[.14] text-xs font-semibold text-[#ffcf94]">
-                  {initials}
-                </span>
-                {fullName}
-                <ChevronDown size={16} className="text-[#a79f92]" />
-              </button>
             </div>
           </header>
 
@@ -565,13 +490,5 @@ export default function DashboardView({
             </div>
           </aside>
         </main>
-      </div>
-    </div>
   );
 }
-
-/* ---------- CSS ---------- */
-
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&display=swap');
-`;

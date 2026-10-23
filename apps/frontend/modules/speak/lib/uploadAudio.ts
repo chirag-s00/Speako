@@ -1,12 +1,25 @@
 import { api } from "@/lib/api";
 import { env } from "@/lib/env";
-import { type drillResponse } from "@speako/common/common";
+import type { drillResponse } from "@speako/common/common";
 
 const API_URL = env.API_URL;
 
-export async function submitDrill(audioBlob: Blob, mode: String,prompt: String, durationSec: number ): Promise<drillResponse>{
-  const key = await uploadAudio(audioBlob)
-  return api.post("/api/drills", {key, mode, prompt, durationSec})
+export async function submitDrill(
+  audioBlob: Blob,
+  mode: "practice" | "interview",
+  prompt: string,
+  durationSec: number,
+): Promise<drillResponse> {
+  const key = await uploadAudio(audioBlob);
+
+  const response = await api.post<drillResponse>("/api/drills", {
+    key,
+    mode,
+    prompt,
+    durationSec,
+  });
+
+  return response.data;
 }
 
 export async function uploadAudio(audioBlob: Blob): Promise<string> {
@@ -16,7 +29,10 @@ export async function uploadAudio(audioBlob: Blob): Promise<string> {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contentType: audioBlob.type, size: audioBlob.size }),
+    body: JSON.stringify({
+      contentType: audioBlob.type,
+      size: audioBlob.size,
+    }),
   });
 
   if (!response.ok) {
@@ -39,5 +55,4 @@ export async function uploadAudio(audioBlob: Blob): Promise<string> {
   }
 
   return key;
-
 }
