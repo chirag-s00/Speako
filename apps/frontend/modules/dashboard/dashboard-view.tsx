@@ -12,9 +12,7 @@ import {
   Plane,
   Star,
   TrendingUp,
-  User,
   UserRound,
-  Volume2,
   Zap,
 } from "lucide-react";
 
@@ -256,15 +254,14 @@ function SectionHead({
 /* ---------- Component ---------- */
 
 export default function DashboardView({
-  name = "Chirag",
-  fullName = "Chirag S.",
+  username,
   greeting = "Good evening,",
   stats = STATS,
   recent = RECENT,
   streakDays = 5,
   activeDays = 5,
 }: {
-  name?: string;
+  username?: string;
   fullName?: string;
   greeting?: string;
   stats?: Stat[];
@@ -272,223 +269,209 @@ export default function DashboardView({
   streakDays?: number;
   activeDays?: number;
 }) {
-  const initials = fullName
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2);
 
   return (
+    <main className="grid min-w-0 gap-x-7 gap-y-5 overflow-hidden p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:py-7 lg:pl-7 lg:pr-7">
+      {/* Header */}
+        <header className="flex min-w-0 items-start justify-between gap-5 lg:col-span-2">
+          <div className="min-w-0">
+            <small className="text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
+              {greeting.replace(",", "").toUpperCase()}
+            </small>
+            <h1 className="mb-1.5 mt-1 font-['Fraunces',serif] text-5xl font-semibold tracking-tight">
+              {username} <span className="inline-block">👋</span>
+            </h1>
+            <p className="text-base leading-relaxed text-[#cfc8bb]">
+              Your voice matters. Let’s make it stronger.
+            </p>
+          </div>
+        </header>
 
-        <main className="grid min-w-0 gap-x-7 gap-y-5 overflow-hidden p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:py-7 lg:pl-7 lg:pr-7">
-          {/* Header */}
+      {/* Left column */}
 
-          <header className="flex min-w-0 items-start justify-between gap-5 lg:col-span-2">
+      <section className="flex min-w-0 flex-col gap-5">
+        {/* Hero */}
+        <div className={`${panel} relative overflow-hidden p-6 sm:p-8`}>
+          <div className="pointer-events-none absolute -right-10 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(240,166,92,.14),transparent_65%)]" />
+
+          <div className="relative grid items-center gap-6 md:grid-cols-[1.15fr_1fr]">
             <div className="min-w-0">
               <small className="text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
-                {greeting.replace(",", "").toUpperCase()}
+                CHOOSE YOUR MODE
               </small>
-              <h1 className="mb-1.5 mt-1 font-['Fraunces',serif] text-5xl font-semibold tracking-tight">
-                {name} <span className="inline-block">👋</span>
-              </h1>
-              <p className="text-base leading-relaxed text-[#cfc8bb]">
-                Your voice matters. Let’s make it stronger.
+              <h2 className="mb-3 mt-2 font-['Fraunces',serif] text-5xl font-semibold leading-[1.05] tracking-tight">
+                Start speaking today
+              </h2>
+              <p className="max-w-[340px] text-base leading-relaxed text-[#cfc8bb]">
+                Practice real conversations, get instant feedback, and improve
+                with AI.
               </p>
-            </div>
-          </header>
 
-          {/* Left column */}
-
-          <section className="flex min-w-0 flex-col gap-5">
-            {/* Hero */}
-            <div className={`${panel} relative overflow-hidden p-6 sm:p-8`}>
-              <div className="pointer-events-none absolute -right-10 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(240,166,92,.14),transparent_65%)]" />
-
-              <div className="relative grid items-center gap-6 md:grid-cols-[1.15fr_1fr]">
-                <div className="min-w-0">
-                  <small className="text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
-                    CHOOSE YOUR MODE
-                  </small>
-                  <h2 className="mb-3 mt-2 font-['Fraunces',serif] text-5xl font-semibold leading-[1.05] tracking-tight">
-                    Start speaking today
-                  </h2>
-                  <p className="max-w-[340px] text-base leading-relaxed text-[#cfc8bb]">
-                    Practice real conversations, get instant feedback, and
-                    improve with AI.
-                  </p>
-
-                  <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                    <Link
-                      href="/drills"
-                      className="flex flex-1 items-center gap-3 rounded-full bg-gradient-to-b from-[#f5b36c] to-[#e99a47] p-3 pr-5 text-[#2a1a08] shadow-[0_6px_24px_rgba(240,166,92,.3)] transition hover:-translate-y-px"
-                    >
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/25">
-                        <Zap size={20} />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-base font-semibold">
-                          Quick Speak
-                        </span>
-                        <span className="block truncate text-xs opacity-75">
-                          Short, focused practice
-                        </span>
-                      </span>
-                    </Link>
-
-                    <Link
-                      href="/drills?mode=interview"
-                      className="flex flex-1 items-center gap-3 rounded-full border border-white/[.07] bg-white/[.03] p-3 pr-5 transition hover:border-[#f0a65c]/50"
-                    >
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/[.07] text-[#e8c9a2]">
-                        <UserRound size={20} />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-base font-semibold">
-                          Interview
-                        </span>
-                        <span className="block truncate text-xs text-[#a79f92]">
-                          Real interview scenarios
-                        </span>
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="relative mx-auto hidden h-64 w-full max-w-[300px] items-center md:flex">
-                  <Wave
-                    heights={[12, 26, 38, 22, 14]}
-                    className="absolute -left-6 top-1/2 -translate-y-1/2 opacity-70"
-                  />
-                  <Mascot />
-                </div>
-              </div>
-            </div>
-
-            {/* Recent practice */}
-            <div className={`${panel} p-5 sm:p-6`}>
-              <SectionHead title="Recent practice" />
-              <div className="grid gap-3 md:grid-cols-3">
-                {recent.map((s, i) => (
-                  <button
-                    key={i}
-                    className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-white/[.07] bg-white/[.03] p-4 text-left transition hover:border-[#f0a65c]/40"
-                  >
-                    <span
-                      className={`grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br ${s.iconClass}`}
-                    >
-                      <s.Icon size={20} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-base font-semibold">
-                        {s.title}
-                      </span>
-                      <span className="block truncate text-xs text-[#cfc8bb]">
-                        Topic: {s.topic}
-                      </span>
-                      <span className="mt-1 block text-xs text-[#a79f92]">
-                        {s.minutes} min
-                      </span>
-                    </span>
-                    <ChevronRight
-                      size={16}
-                      className="shrink-0 text-[#a79f92]"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Right column (fixed 380px like the Drills prompt panel) */}
-
-          <aside className="flex min-w-0 flex-col gap-5 max-lg:mt-1">
-            {/* Progress */}
-            <div className={`${panel} p-4 sm:p-5`}>
-              <div className="mb-4 flex items-center justify-between">
-                <div className="inline-flex items-center gap-3 rounded-full bg-white/[.04] py-2 pl-2 pr-[22px] text-[17px] font-medium">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f0a65c]/[.14]">
-                    <Wave />
-                  </span>
-                  Your Progress
-                </div>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/progress"
-                  className="flex items-center gap-1.5 text-sm text-[#f0a65c] hover:text-[#ffcf94]"
+                  href="/drills"
+                  className="flex flex-1 items-center gap-3 rounded-full bg-gradient-to-b from-[#f5b36c] to-[#e99a47] p-3 pr-5 text-[#2a1a08] shadow-[0_6px_24px_rgba(240,166,92,.3)] transition hover:-translate-y-px"
                 >
-                  View all <ArrowRight size={14} />
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/25">
+                    <Zap size={20} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-base font-semibold">
+                      Quick Speak
+                    </span>
+                    <span className="block truncate text-xs opacity-75">
+                      Short, focused practice
+                    </span>
+                  </span>
+                </Link>
+
+                <Link
+                  href="/drills?mode=interview"
+                  className="flex flex-1 items-center gap-3 rounded-full border border-white/[.07] bg-white/[.03] p-3 pr-5 transition hover:border-[#f0a65c]/50"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/[.07] text-[#e8c9a2]">
+                    <UserRound size={20} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-base font-semibold">
+                      Interview
+                    </span>
+                    <span className="block truncate text-xs text-[#a79f92]">
+                      Real interview scenarios
+                    </span>
+                  </span>
                 </Link>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {stats.map((s) => (
-                  <div
-                    key={s.label}
-                    className="min-w-0 rounded-[18px] border border-white/[.07] bg-gradient-to-br from-white/5 to-white/[.01] p-3.5"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#f0a65c]/30 bg-[#3a2a1c] text-[#ffcf94]">
-                        <s.Icon size={18} />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-xs text-[#cfc8bb]">
-                          {s.label}
-                        </p>
-                        <p className="font-['Fraunces',serif] text-[26px] font-semibold leading-tight tracking-tight">
-                          {s.value}
-                        </p>
-                        <p className="text-xs text-[#a79f92]">{s.unit}</p>
-                      </div>
-                    </div>
-                    <p className="mt-3 flex items-center gap-1.5 border-t border-white/[.07] pt-2.5 text-xs">
-                      <TrendingUp size={13} className="text-emerald-400" />
-                      <span className="font-semibold text-emerald-400">
-                        {s.change}
-                      </span>
-                      <span className="text-[#a79f92]">vs last week</span>
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Streak */}
-            <div className={`${panel} p-4 sm:p-5`}>
-              <div className="flex items-center gap-4">
-                <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[#f0a65c]/30 bg-[#3a2a1c] text-[#ffcf94] shadow-[0_0_30px_rgba(240,166,92,.25)]">
-                  <Flame size={30} />
+            <div className="relative mx-auto hidden h-64 w-full max-w-[300px] items-center md:flex">
+              <Wave
+                heights={[12, 26, 38, 22, 14]}
+                className="absolute -left-6 top-1/2 -translate-y-1/2 opacity-70"
+              />
+              <Mascot />
+            </div>
+          </div>
+        </div>
+
+        {/* Recent practice */}
+        <div className={`${panel} p-5 sm:p-6`}>
+          <SectionHead title="Recent practice" />
+          <div className="grid gap-3 md:grid-cols-3">
+            {recent.map((s, i) => (
+              <button
+                key={i}
+                className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-white/[.07] bg-white/[.03] p-4 text-left transition hover:border-[#f0a65c]/40"
+              >
+                <span
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br ${s.iconClass}`}
+                >
+                  <s.Icon size={20} />
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-[#cfc8bb]">
-                    Keep your streak alive!
-                  </p>
-                  <p className="font-['Fraunces',serif] text-3xl font-semibold tracking-tight text-[#ffcf94]">
-                    {streakDays} days
-                  </p>
-                  <p className="text-xs text-[#a79f92]">Current streak</p>
-                </div>
-              </div>
-
-              <div className="mt-4 flex justify-between gap-1.5">
-                {WEEK.map((d, i) => (
-                  <span
-                    key={i}
-                    className={
-                      "grid h-9 w-9 place-items-center rounded-full text-xs font-medium " +
-                      (i < activeDays
-                        ? "bg-gradient-to-br from-[#4fbf8a] to-[#1f7a52] text-white"
-                        : "border border-white/[.07] bg-white/[.04] text-[#a79f92]")
-                    }
-                  >
-                    {d}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-semibold">
+                    {s.title}
                   </span>
-                ))}
-              </div>
+                  <span className="block truncate text-xs text-[#cfc8bb]">
+                    Topic: {s.topic}
+                  </span>
+                  <span className="mt-1 block text-xs text-[#a79f92]">
+                    {s.minutes} min
+                  </span>
+                </span>
+                <ChevronRight size={16} className="shrink-0 text-[#a79f92]" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <p className="mt-4 text-center font-['Fraunces',serif] text-sm italic text-[#a79f92]">
-                “Progress, not perfection.”
-              </p>
+      {/* Right column (fixed 380px like the Drills prompt panel) */}
+
+      <aside className="flex min-w-0 flex-col gap-5 max-lg:mt-1">
+        {/* Progress */}
+        <div className={`${panel} p-4 sm:p-5`}>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="inline-flex items-center gap-3 rounded-full bg-white/[.04] py-2 pl-2 pr-[22px] text-[17px] font-medium">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f0a65c]/[.14]">
+                <Wave />
+              </span>
+              Your Progress
             </div>
-          </aside>
-        </main>
+            <Link
+              href="/progress"
+              className="flex items-center gap-1.5 text-sm text-[#f0a65c] hover:text-[#ffcf94]"
+            >
+              View all <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map((s) => (
+              <div
+                key={s.label}
+                className="min-w-0 rounded-[18px] border border-white/[.07] bg-gradient-to-br from-white/5 to-white/[.01] p-3.5"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#f0a65c]/30 bg-[#3a2a1c] text-[#ffcf94]">
+                    <s.Icon size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs text-[#cfc8bb]">{s.label}</p>
+                    <p className="font-['Fraunces',serif] text-[26px] font-semibold leading-tight tracking-tight">
+                      {s.value}
+                    </p>
+                    <p className="text-xs text-[#a79f92]">{s.unit}</p>
+                  </div>
+                </div>
+                <p className="mt-3 flex items-center gap-1.5 border-t border-white/[.07] pt-2.5 text-xs">
+                  <TrendingUp size={13} className="text-emerald-400" />
+                  <span className="font-semibold text-emerald-400">
+                    {s.change}
+                  </span>
+                  <span className="text-[#a79f92]">vs last week</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Streak */}
+        <div className={`${panel} p-4 sm:p-5`}>
+          <div className="flex items-center gap-4">
+            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[#f0a65c]/30 bg-[#3a2a1c] text-[#ffcf94] shadow-[0_0_30px_rgba(240,166,92,.25)]">
+              <Flame size={30} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-[#cfc8bb]">Keep your streak alive!</p>
+              <p className="font-['Fraunces',serif] text-3xl font-semibold tracking-tight text-[#ffcf94]">
+                {streakDays} days
+              </p>
+              <p className="text-xs text-[#a79f92]">Current streak</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-between gap-1.5">
+            {WEEK.map((d, i) => (
+              <span
+                key={i}
+                className={
+                  "grid h-9 w-9 place-items-center rounded-full text-xs font-medium " +
+                  (i < activeDays
+                    ? "bg-gradient-to-br from-[#4fbf8a] to-[#1f7a52] text-white"
+                    : "border border-white/[.07] bg-white/[.04] text-[#a79f92]")
+                }
+              >
+                {d}
+              </span>
+            ))}
+          </div>
+
+          <p className="mt-4 text-center font-['Fraunces',serif] text-sm italic text-[#a79f92]">
+            “Progress, not perfection.”
+          </p>
+        </div>
+      </aside>
+    </main>
   );
 }

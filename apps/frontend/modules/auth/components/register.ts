@@ -1,5 +1,7 @@
 import { registerSchema,type RegisterSchema,authResponseSchema, type AuthResponse } from "@speako/common/common";
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { env } from "@/lib/env";
+
+const API_URL = env.API_URL;
 
 export async function register(
   input: RegisterSchema

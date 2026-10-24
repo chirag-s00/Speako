@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Volume2,
 } from "lucide-react";
+import { env } from "@/lib/env";
 
 type JobStatus = "pending" | "processing" | "success" | "failed";
 
@@ -32,9 +33,7 @@ type JobSnapshot = {
   result?: JobResult;
 };
 
-// Set this to your backend URL if the API is on another origin.
-// Example: NEXT_PUBLIC_API_URL=http://localhost:4000
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+const API_BASE = (env.API_URL ?? "").replace(/\/$/, "");
 
 function jobUrl(jobId: string, events = false) {
   return `${API_BASE}/jobs/${encodeURIComponent(jobId)}${

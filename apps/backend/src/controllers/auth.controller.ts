@@ -77,3 +77,28 @@ export async function login(req: express.Request, res: express.Response) {
         return res.status(500).json({ error: "Login failed" });
     }
 }
+
+
+export async function me(req:express.Request, res: express.Response){
+    try{
+        const user = await prisma.user.findUnique({
+            where:{
+                id: req.userId,
+            },
+            select:{
+                id: true,
+                username:true,
+                email:true,
+            },
+        });
+
+        if(!user){
+            return res.status(401).json({message: "User not found"})
+        }
+
+        return res.status(200).json({user});
+
+    }catch(error){
+        return res.status(500).json({message: "Failed to validate session"});
+    }
+}
