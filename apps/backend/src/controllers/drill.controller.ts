@@ -206,3 +206,37 @@ export async function jobEvents(req: express.Request, res: express.Response) {
 
   void tick(); // send the current state immediately
 }
+
+export async function progress(req:express.Request, res: express.Response){
+  try {
+    const results = await prisma.result.findMany({
+      where: {
+        drill: {
+          userId: req.userId,
+        },
+      },
+      include: {
+        drill: {
+          select: {
+            id: true,
+            mode: true,
+            prompt: true,
+            durationSec: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.json({ results });
+  } catch (error) {
+    console.error("Failed to fetch progress:", error);
+
+    return res.status(500).json({
+      message: "Failed to fetch progress",
+    });
+  }
+}

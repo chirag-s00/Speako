@@ -42,3 +42,18 @@ export type Feedback = zod.infer<typeof feedbackSchema>;
 export const jobIdSchema = zod.string().uuid();
 
 export type jobIdType = zod.infer<typeof jobIdSchema>
+
+import { z } from "zod";
+
+export const profileSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  username: z.string(),
+});
+
+export const profileResponseSchema = z.object({
+  user: profileSchema,
+});
+
+export type Profile = z.infer<typeof profileSchema>;
+export type ProfileResponse = z.infer<typeof profileResponseSchema>;

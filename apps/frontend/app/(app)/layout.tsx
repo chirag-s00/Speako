@@ -1,6 +1,9 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Fraunces, DM_Sans } from "next/font/google";
+
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { getCurrentUser } from "@/lib/auth";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -21,16 +24,37 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div
       className={`${fraunces.variable} ${dmSans.variable} font-body grid min-h-screen place-items-center overflow-x-hidden bg-[#0a0b09] p-3 text-[#efe9df] sm:p-6`}
     >
-      <div className="grid min-h-[860px] w-full max-w-[1440px] min-w-0 overflow-hidden rounded-[28px] border border-white/[.07] bg-[radial-gradient(1200px_600px_at_55%_45%,#17201a,#0b0d0b)] lg:grid-cols-[260px_minmax(0,1fr)]">
-        <Suspense
-          fallback={
-            <aside className="hidden border-r border-white/[.07] lg:block" />
-          }
-        >
-          <AppSidebar />
-        </Suspense>
-        {children}
-      </div>
+      <Suspense fallback={<AppLayoutFallback />}>
+        <AuthenticatedApp>{children}</AuthenticatedApp>
+      </Suspense>
     </div>
+  );
+}
+
+async function AuthenticatedApp({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return (
+    <div className="grid min-h-[860px] w-full max-w-[1440px] min-w-0 overflow-hidden rounded-[28px] border border-white/[.07] bg-[radial-gradient(1200px_600px_at_55%_45%,#17201a,#0b0d0b)] lg:grid-cols-[260px_minmax(0,1fr)]">
+      <Suspense
+        fallback={
+          <aside className="hidden border-r border-white/[.07] lg:block" />
+        }
+      >
+        <AppSidebar />
+      </Suspense>
+
+      {children}
+    </div>
+  );
+}
+
+function AppLayoutFallback() {
+  return (
+    <div className="min-h-[860px] w-full max-w-[1440px] animate-pulse rounded-[28px] border border-white/[.07] bg-[#0b0d0b]" />
   );
 }
