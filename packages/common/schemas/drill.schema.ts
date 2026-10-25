@@ -8,16 +8,16 @@ export const drillSchema = zod.object({
 });
 
 export const jobMessageSchema = zod.object({
-  jobId: zod.string().uuid().min(1),
-  drillId: zod.string().uuid().min(1),
+  jobId: zod.uuid().min(1),
+  drillId: zod.uuid().min(1),
   audioKey: zod.string().min(1), 
 })
 
 export type JobMessage = zod.infer<typeof jobMessageSchema>;
 
 export const drillResponse = zod.object({
-  drillId: zod.string().uuid().min(1),
-  jobId: zod.string().uuid().min(1)
+  drillId: zod.uuid().min(1),
+  jobId: zod.uuid().min(1)
 })
 
 export type drillResponse = zod.infer<typeof drillResponse>
@@ -46,8 +46,8 @@ export type jobIdType = zod.infer<typeof jobIdSchema>
 import { z } from "zod";
 
 export const profileSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   username: z.string(),
 });
 
