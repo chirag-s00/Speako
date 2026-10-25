@@ -1,4 +1,4 @@
-import { ProgressView } from "@/modules/progress/progress-view";
+import ProgressView from "@/modules/progress/progress-view";
 
 export default function ProgressPage() {
   return <ProgressView />;

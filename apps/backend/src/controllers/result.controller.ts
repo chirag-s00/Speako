@@ -4,7 +4,7 @@ import { prisma } from "@speako/db/client";
 
 const DEFAULT_LIMIT = 10;
 
-// GET /results?limit=10&cursor=<drillId>
+// GET /progress?limit=10&cursor=<drillId>
 export async function getResults(req: Request, res: Response) {
   try {
     const userId = req.userId;
@@ -64,7 +64,7 @@ export async function getResults(req: Request, res: Response) {
   }
 }
 
-// GET /results/:id  (:id is the Drill ID)
+// GET /progress/:id  (:id is the Drill ID)
 export async function getResultsById(req: Request, res: Response) {
   try {
     const userId = req.userId;

@@ -1,477 +1,416 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
 import {
+  Activity,
   ArrowRight,
-  BarChart3,
-  ChevronRight,
-  Flame,
-  MessageSquare,
+  Clock3,
   Mic,
-  Plane,
+  MessageSquare,
   Star,
   TrendingUp,
-  UserRound,
   Zap,
 } from "lucide-react";
 
-/* ---------- Types & default data (replace with real data) ---------- */
-
-interface Stat {
-  label: string;
-  value: string;
-  unit: string;
-  change: string;
-  Icon: LucideIcon;
-}
-
-interface Session {
-  title: string;
-  topic: string;
-  minutes: number;
-  Icon: LucideIcon;
-  iconClass: string;
-}
-
-const STATS: Stat[] = [
-  {
-    label: "Total Practice",
-    value: "12",
-    unit: "sessions",
-    change: "24%",
-    Icon: MessageSquare,
-  },
-  {
-    label: "Speaking Time",
-    value: "4h 36m",
-    unit: "total time",
-    change: "24%",
-    Icon: Mic,
-  },
-  {
-    label: "Avg. Fluency",
-    value: "82%",
-    unit: "score",
-    change: "15%",
-    Icon: Star,
-  },
-  {
-    label: "Streak",
-    value: "5",
-    unit: "days",
-    change: "2 days",
-    Icon: BarChart3,
-  },
-];
-
-const RECENT: Session[] = [
-  {
-    title: "Quick Speak",
-    topic: "Daily Life",
-    minutes: 5,
-    Icon: Zap,
-    iconClass: "from-[#f5b36c] to-[#c8722a] text-[#2a1a08]",
-  },
-  {
-    title: "Interview",
-    topic: "Job Interview",
-    minutes: 8,
-    Icon: UserRound,
-    iconClass: "from-[#6d5bd0] to-[#3d2f8f] text-white",
-  },
-  {
-    title: "Quick Speak",
-    topic: "Travel",
-    minutes: 6,
-    Icon: Plane,
-    iconClass: "from-[#3fae7f] to-[#1d6b4a] text-white",
-  },
-];
-
-const WEEK = ["M", "T", "W", "T", "F", "S", "S"];
-
-/* ---------- Shared styles ---------- */
+import {
+  getDashboardData,
+  type DashboardData,
+} from "@/modules/dashboard/lib/getDashboardData";
+import { ApiError } from "@/modules/progress/lib/getResults";
 
 const panel =
   "rounded-[22px] border border-white/[.07] bg-gradient-to-br from-white/5 to-white/[.01]";
 
-/* ---------- Small pieces ---------- */
-
-function Wave({
-  heights = [8, 16, 11, 20, 9],
-  className = "",
+export default function DashboardView({
+  username,
+  greeting = "Welcome Back,"
 }: {
-  heights?: number[];
-  className?: string;
+  username?: string;
+  greeting?: string;
 }) {
+  const router = useRouter();
+
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const dashboard = await getDashboardData(10);
+      setData(dashboard);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      setError(
+        err instanceof Error ? err.message : "Could not load your dashboard.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    void loadDashboard();
+  }, [loadDashboard]);
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    if (minutes === 0) return `${remainingSeconds}s`;
+    if (remainingSeconds === 0) return `${minutes}m`;
+
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+
+  const formatDate = (value: string) => {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "Date unavailable";
+
+    return date.toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getOverallScore = (item: DashboardData["results"][number]) => {
+    const scores = item.scores;
+
+    return Math.round(
+      (scores.pacing +
+        scores.clarity +
+        scores.fluency +
+        scores.coherence +
+        scores.vocabulary) /
+        5,
+    );
+  };
+
   return (
-    <span
-      className={"inline-flex items-center gap-1 " + className}
-      aria-hidden="true"
-    >
-      {heights.map((h, i) => (
-        <i
-          key={i}
-          className="block w-[3px] rounded-[3px] bg-[#f0a65c]"
-          style={{ height: h }}
-        />
-      ))}
-    </span>
+    <main className="min-w-0 space-y-6 overflow-hidden p-4 text-[#eee7dc] sm:p-5 lg:space-y-7 lg:py-7 lg:pl-7 lg:pr-7">
+      {/* Header */}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
+            {greeting.toUpperCase()}
+          </p>
+
+          <h1 className="mt-1 font-['Fraunces',serif] text-4xl font-semibold tracking-tight sm:text-5xl">
+            {username || "Welcome"} <span>👋</span>
+          </h1>
+
+          <p className="mt-2 text-sm leading-relaxed text-[#cfc8bb] sm:text-base">
+            Let's get started
+          </p>
+        </div>
+      </header>
+
+      {/* Error state */}
+      {error && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-red-400/20 bg-red-400/[.05] p-5 text-sm text-red-300"
+        >
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => void loadDashboard()}
+            className="mt-3 underline underline-offset-4"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div className={`${panel} animate-pulse p-6 text-sm text-[#a79f92]`}>
+          Loading your speaking activity...
+        </div>
+      )}
+
+      {!loading && data && (
+        <>
+          {/* Hero */}
+          <section className={`${panel} relative overflow-hidden p-6 sm:p-8`}>
+            <div className="pointer-events-none absolute -right-12 -top-16 size-64 rounded-full bg-[#f0a65c]/[.08] blur-3xl" />
+
+            <div className="relative max-w-2xl">
+              <h2 className="mt-5 font-['Fraunces',serif] text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+                Every conversation makes you stronger.
+              </h2>
+
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-[#cfc8bb] sm:text-base">
+                Practice speaking, review your feedback, and build confidence
+                one drill at a time.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/drills"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-[#f5b36c] to-[#e99a47] px-5 py-3 text-sm font-semibold text-[#2a1a08] shadow-[0_6px_24px_rgba(240,166,92,.18)] transition hover:-translate-y-px"
+                >
+                  <Zap size={17} />
+                  Start speaking
+                  <ArrowRight size={15} />
+                </Link>
+
+                <Link
+                  href="/progress"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/[.07] bg-white/[.03] px-5 py-3 text-sm text-[#cfc8bb] transition hover:border-[#f0a65c]/40 hover:text-[#ffcf94]"
+                >
+                  <Activity size={16} />
+                  Review progress
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* Stats */}
+          <section>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="font-['Fraunces',serif] text-2xl font-semibold tracking-tight">
+                Your progress
+              </h2>
+              <Link
+                href="/progress"
+                className="inline-flex items-center gap-2 rounded-full border border-white/[.07] bg-white/[.03] px-4 py-2.5 text-sm text-[#cfc8bb] transition hover:border-[#f0a65c]/50 hover:text-[#f0a65c]"
+              >
+                View history <ArrowRight size={15} />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                label="Completed drills"
+                value={String(data.completedDrills)}
+                hint={
+                  data.nextCursor
+                    ? "Latest results only"
+                    : "All available results"
+                }
+                Icon={MessageSquare}
+              />
+
+              <StatCard
+                label="Average score"
+                value={`${data.averageScore}%`}
+                hint="Across loaded drills"
+                Icon={Star}
+              />
+
+              <StatCard
+                label="Average fluency"
+                value={`${data.averageFluency}%`}
+                hint="Across loaded drills"
+                Icon={TrendingUp}
+              />
+
+              <StatCard
+                label="Speaking time"
+                value={formatDuration(data.totalSpeakingSeconds)}
+                hint="Across loaded drills"
+                Icon={Clock3}
+              />
+            </div>
+          </section>
+
+          {/* Recent practice and focus */}
+          <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+            <div className={`${panel} min-w-0 p-5 sm:p-6`}>
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-['Fraunces',serif] text-2xl font-semibold tracking-tight">
+                    Recent practice
+                  </h2>
+                  <p className="mt-1 text-sm text-[#a79f92]">
+                    Pick up where you left off.
+                  </p>
+                </div>
+
+                <Link
+                  href="/progress"
+                  aria-label="View all speaking results"
+                  className="grid size-10 shrink-0 place-items-center rounded-full border border-white/[.07] text-[#f0a65c] transition hover:border-[#f0a65c]/40"
+                >
+                  <ArrowRight size={17} />
+                </Link>
+              </div>
+
+              {data.recent.length === 0 ? (
+                <div className="rounded-[18px] border border-white/[.07] bg-white/[.02] px-5 py-8 text-center">
+                  <div className="mx-auto grid size-12 place-items-center rounded-full bg-[#f0a65c]/[.10] text-[#f0a65c]">
+                    <Mic size={21} />
+                  </div>
+
+                  <h3 className="mt-4 font-medium">Your first drill awaits</h3>
+
+                  <p className="mt-2 text-sm leading-relaxed text-[#a79f92]">
+                    Complete a speaking drill to see your scores and feedback
+                    here.
+                  </p>
+
+                  <Link
+                    href="/drills"
+                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#f0a65c] px-5 py-2.5 text-sm font-semibold text-[#20170f] transition hover:bg-[#f5b978]"
+                  >
+                    Start a drill <ArrowRight size={15} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {data.recent.map((item) => {
+                    const overall = getOverallScore(item);
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => router.push(`/progress/${item.drillId}`)}
+                        className="group flex w-full min-w-0 items-center gap-3 rounded-[18px] border border-white/[.07] bg-white/[.025] p-4 text-left transition hover:border-[#f0a65c]/40 hover:bg-white/[.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a65c] sm:gap-4"
+                      >
+                        <span className="grid size-11 shrink-0 place-items-center rounded-full border border-[#f0a65c]/20 bg-[#f0a65c]/[.09] text-[#f0a65c]">
+                          <Mic size={19} />
+                        </span>
+
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-semibold uppercase tracking-wider text-[#f0a65c]">
+                            {item.drill.mode}
+                          </span>
+
+                          <span className="mt-1 block truncate text-sm font-medium text-[#eee7dc] sm:text-base">
+                            {item.drill.prompt || "Speaking drill"}
+                          </span>
+
+                          <span className="mt-1 block text-xs text-[#a79f92]">
+                            {formatDate(item.createdAt)}
+                            {" · "}
+                            {formatDuration(item.drill.durationSec ?? 0)}
+                          </span>
+                        </span>
+
+                        <span className="shrink-0 text-right">
+                          <span className="block text-xl font-semibold text-[#eee7dc]">
+                            {overall}
+                            <span className="text-xs text-[#a79f92]">/100</span>
+                          </span>
+                          <span className="mt-1 block text-xs text-[#a79f92]">
+                            Score
+                          </span>
+                        </span>
+
+                        <ArrowRight
+                          size={16}
+                          className="hidden shrink-0 text-[#a79f92] transition group-hover:translate-x-1 group-hover:text-[#f0a65c] sm:block"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {data.nextCursor && (
+                <p className="mt-4 text-center text-xs text-[#a79f92]">
+                  Showing recent results.{" "}
+                  <Link
+                    href="/progress"
+                    className="text-[#f0a65c] hover:text-[#ffcf94]"
+                  >
+                    Load more in history
+                  </Link>
+                </p>
+              )}
+            </div>
+
+            {/* Personalized focus */}
+            <aside className={`${panel} flex flex-col p-5 sm:p-6`}>
+              <div className="grid size-11 place-items-center rounded-full border border-[#f0a65c]/20 bg-[#f0a65c]/[.09] text-[#f0a65c]">
+                <Star size={20} />
+              </div>
+
+              <p className="mt-5 text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
+                YOUR NEXT STEP
+              </p>
+
+              <h2 className="mt-2 font-['Fraunces',serif] text-2xl font-semibold tracking-tight">
+                Keep improving
+              </h2>
+
+              <p className="mt-3 text-sm leading-relaxed text-[#cfc8bb]">
+                {data.focusTip ??
+                  "Complete a speaking drill to receive feedback and discover what to work on next."}
+              </p>
+
+              <div className="mt-6 rounded-[18px] border border-white/[.07] bg-white/[.025] p-4">
+                <p className="text-sm font-medium">Practice tip</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#a79f92]">
+                  Speak at a comfortable pace, organize your ideas, and leave a
+                  short pause between important points.
+                </p>
+              </div>
+
+              <Link
+                href="/drills"
+                className="mt-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-[#f5b36c] to-[#e99a47] px-4 py-3 text-sm font-semibold text-[#2a1a08] transition hover:-translate-y-px"
+              >
+                Practice now <ArrowRight size={15} />
+              </Link>
+            </aside>
+          </section>
+        </>
+      )}
+    </main>
   );
 }
 
-function Mascot() {
-  return (
-    <svg viewBox="0 0 220 200" className="h-full w-full" aria-hidden="true">
-      <defs>
-        <radialGradient id="mascot-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#f0a65c" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#f0a65c" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="mascot-head" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2a2622" />
-          <stop offset="100%" stopColor="#0c0b0a" />
-        </linearGradient>
-        <linearGradient id="mascot-orange" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f5b36c" />
-          <stop offset="100%" stopColor="#c8722a" />
-        </linearGradient>
-      </defs>
-      <circle cx="110" cy="100" r="95" fill="url(#mascot-glow)" />
-      <line
-        x1="110"
-        y1="22"
-        x2="110"
-        y2="38"
-        stroke="url(#mascot-orange)"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <circle cx="110" cy="18" r="5" fill="url(#mascot-orange)" />
-      <path
-        d="M52 95 C52 40, 168 40, 168 95"
-        fill="none"
-        stroke="url(#mascot-orange)"
-        strokeWidth="7"
-        strokeLinecap="round"
-      />
-      <rect
-        x="36"
-        y="78"
-        width="24"
-        height="46"
-        rx="12"
-        fill="url(#mascot-orange)"
-      />
-      <rect
-        x="160"
-        y="78"
-        width="24"
-        height="46"
-        rx="12"
-        fill="url(#mascot-orange)"
-      />
-      <rect
-        x="56"
-        y="48"
-        width="108"
-        height="92"
-        rx="34"
-        fill="url(#mascot-head)"
-        stroke="#f0a65c"
-        strokeOpacity="0.35"
-      />
-      <rect x="66" y="62" width="88" height="62" rx="24" fill="#050504" />
-      <path
-        d="M84 92 q8 -12 16 0"
-        fill="none"
-        stroke="#f0a65c"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M120 92 q8 -12 16 0"
-        fill="none"
-        stroke="#f0a65c"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M102 106 q8 8 16 0"
-        fill="none"
-        stroke="#f0a65c"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M168 110 C178 140, 150 152, 128 152"
-        fill="none"
-        stroke="url(#mascot-orange)"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <rect
-        x="116"
-        y="144"
-        width="18"
-        height="26"
-        rx="9"
-        fill="url(#mascot-orange)"
-      />
-      <path
-        d="M70 178 C70 154, 150 154, 150 178 Z"
-        fill="url(#mascot-head)"
-        stroke="#f0a65c"
-        strokeOpacity="0.3"
-      />
-    </svg>
-  );
-}
-
-function SectionHead({
-  title,
-  href = "/progress",
+function StatCard({
+  label,
+  value,
+  hint,
+  Icon,
 }: {
-  title: string;
-  href?: string;
+  label: string;
+  value: string;
+  hint: string;
+  Icon: typeof MessageSquare;
 }) {
   return (
-    <div className="mb-4 flex items-center justify-between">
-      <h3 className="font-['Fraunces',serif] text-2xl font-semibold tracking-tight">
-        {title}
-      </h3>
-      <Link
-        href={href}
-        className="flex items-center gap-1.5 text-sm text-[#f0a65c] hover:text-[#ffcf94]"
-      >
-        View all <ArrowRight size={14} />
-      </Link>
+    <div className="rounded-[20px] border border-white/[.07] bg-gradient-to-br from-white/5 to-white/[.01] p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm text-[#cfc8bb]">{label}</p>
+
+        <span className="grid size-9 shrink-0 place-items-center rounded-full border border-[#f0a65c]/20 bg-[#f0a65c]/[.09] text-[#f0a65c]">
+          <Icon size={17} />
+        </span>
+      </div>
+
+      <p className="mt-4 break-words font-['Fraunces',serif] text-3xl font-semibold tracking-tight">
+        {value}
+      </p>
+
+      <p className="mt-2 text-xs text-[#a79f92]">{hint}</p>
     </div>
   );
 }
 
-/* ---------- Component ---------- */
+function formatDate(value: string): string {
+  const date = new Date(value);
 
-export default function DashboardView({
-  username,
-  greeting = "Good evening,",
-  stats = STATS,
-  recent = RECENT,
-  streakDays = 5,
-  activeDays = 5,
-}: {
-  username?: string;
-  fullName?: string;
-  greeting?: string;
-  stats?: Stat[];
-  recent?: Session[];
-  streakDays?: number;
-  activeDays?: number;
-}) {
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
 
-  return (
-    <main className="grid min-w-0 gap-x-7 gap-y-5 overflow-hidden p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:py-7 lg:pl-7 lg:pr-7">
-      {/* Header */}
-        <header className="flex min-w-0 items-start justify-between gap-5 lg:col-span-2">
-          <div className="min-w-0">
-            <small className="text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
-              {greeting.replace(",", "").toUpperCase()}
-            </small>
-            <h1 className="mb-1.5 mt-1 font-['Fraunces',serif] text-5xl font-semibold tracking-tight">
-              {username} <span className="inline-block">👋</span>
-            </h1>
-            <p className="text-base leading-relaxed text-[#cfc8bb]">
-              Your voice matters. Let’s make it stronger.
-            </p>
-          </div>
-        </header>
-
-      {/* Left column */}
-
-      <section className="flex min-w-0 flex-col gap-5">
-        {/* Hero */}
-        <div className={`${panel} relative overflow-hidden p-6 sm:p-8`}>
-          <div className="pointer-events-none absolute -right-10 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(240,166,92,.14),transparent_65%)]" />
-
-          <div className="relative grid items-center gap-6 md:grid-cols-[1.15fr_1fr]">
-            <div className="min-w-0">
-              <small className="text-xs font-semibold tracking-[.2em] text-[#f0a65c]">
-                CHOOSE YOUR MODE
-              </small>
-              <h2 className="mb-3 mt-2 font-['Fraunces',serif] text-5xl font-semibold leading-[1.05] tracking-tight">
-                Start speaking today
-              </h2>
-              <p className="max-w-[340px] text-base leading-relaxed text-[#cfc8bb]">
-                Practice real conversations, get instant feedback, and improve
-                with AI.
-              </p>
-
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/drills"
-                  className="flex flex-1 items-center gap-3 rounded-full bg-gradient-to-b from-[#f5b36c] to-[#e99a47] p-3 pr-5 text-[#2a1a08] shadow-[0_6px_24px_rgba(240,166,92,.3)] transition hover:-translate-y-px"
-                >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/25">
-                    <Zap size={20} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-base font-semibold">
-                      Quick Speak
-                    </span>
-                    <span className="block truncate text-xs opacity-75">
-                      Short, focused practice
-                    </span>
-                  </span>
-                </Link>
-
-                <Link
-                  href="/drills?mode=interview"
-                  className="flex flex-1 items-center gap-3 rounded-full border border-white/[.07] bg-white/[.03] p-3 pr-5 transition hover:border-[#f0a65c]/50"
-                >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/[.07] text-[#e8c9a2]">
-                    <UserRound size={20} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-base font-semibold">
-                      Interview
-                    </span>
-                    <span className="block truncate text-xs text-[#a79f92]">
-                      Real interview scenarios
-                    </span>
-                  </span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="relative mx-auto hidden h-64 w-full max-w-[300px] items-center md:flex">
-              <Wave
-                heights={[12, 26, 38, 22, 14]}
-                className="absolute -left-6 top-1/2 -translate-y-1/2 opacity-70"
-              />
-              <Mascot />
-            </div>
-          </div>
-        </div>
-
-        {/* Recent practice */}
-        <div className={`${panel} p-5 sm:p-6`}>
-          <SectionHead title="Recent practice" />
-          <div className="grid gap-3 md:grid-cols-3">
-            {recent.map((s, i) => (
-              <button
-                key={i}
-                className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-white/[.07] bg-white/[.03] p-4 text-left transition hover:border-[#f0a65c]/40"
-              >
-                <span
-                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br ${s.iconClass}`}
-                >
-                  <s.Icon size={20} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-base font-semibold">
-                    {s.title}
-                  </span>
-                  <span className="block truncate text-xs text-[#cfc8bb]">
-                    Topic: {s.topic}
-                  </span>
-                  <span className="mt-1 block text-xs text-[#a79f92]">
-                    {s.minutes} min
-                  </span>
-                </span>
-                <ChevronRight size={16} className="shrink-0 text-[#a79f92]" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Right column (fixed 380px like the Drills prompt panel) */}
-
-      <aside className="flex min-w-0 flex-col gap-5 max-lg:mt-1">
-        {/* Progress */}
-        <div className={`${panel} p-4 sm:p-5`}>
-          <div className="mb-4 flex items-center justify-between">
-            <div className="inline-flex items-center gap-3 rounded-full bg-white/[.04] py-2 pl-2 pr-[22px] text-[17px] font-medium">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f0a65c]/[.14]">
-                <Wave />
-              </span>
-              Your Progress
-            </div>
-            <Link
-              href="/progress"
-              className="flex items-center gap-1.5 text-sm text-[#f0a65c] hover:text-[#ffcf94]"
-            >
-              View all <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="min-w-0 rounded-[18px] border border-white/[.07] bg-gradient-to-br from-white/5 to-white/[.01] p-3.5"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#f0a65c]/30 bg-[#3a2a1c] text-[#ffcf94]">
-                    <s.Icon size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-xs text-[#cfc8bb]">{s.label}</p>
-                    <p className="font-['Fraunces',serif] text-[26px] font-semibold leading-tight tracking-tight">
-                      {s.value}
-                    </p>
-                    <p className="text-xs text-[#a79f92]">{s.unit}</p>
-                  </div>
-                </div>
-                <p className="mt-3 flex items-center gap-1.5 border-t border-white/[.07] pt-2.5 text-xs">
-                  <TrendingUp size={13} className="text-emerald-400" />
-                  <span className="font-semibold text-emerald-400">
-                    {s.change}
-                  </span>
-                  <span className="text-[#a79f92]">vs last week</span>
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Streak */}
-        <div className={`${panel} p-4 sm:p-5`}>
-          <div className="flex items-center gap-4">
-            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[#f0a65c]/30 bg-[#3a2a1c] text-[#ffcf94] shadow-[0_0_30px_rgba(240,166,92,.25)]">
-              <Flame size={30} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-[#cfc8bb]">Keep your streak alive!</p>
-              <p className="font-['Fraunces',serif] text-3xl font-semibold tracking-tight text-[#ffcf94]">
-                {streakDays} days
-              </p>
-              <p className="text-xs text-[#a79f92]">Current streak</p>
-            </div>
-          </div>
-
-          <div className="mt-4 flex justify-between gap-1.5">
-            {WEEK.map((d, i) => (
-              <span
-                key={i}
-                className={
-                  "grid h-9 w-9 place-items-center rounded-full text-xs font-medium " +
-                  (i < activeDays
-                    ? "bg-gradient-to-br from-[#4fbf8a] to-[#1f7a52] text-white"
-                    : "border border-white/[.07] bg-white/[.04] text-[#a79f92]")
-                }
-              >
-                {d}
-              </span>
-            ))}
-          </div>
-
-          <p className="mt-4 text-center font-['Fraunces',serif] text-sm italic text-[#a79f92]">
-            “Progress, not perfection.”
-          </p>
-        </div>
-      </aside>
-    </main>
-  );
+  return date.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
