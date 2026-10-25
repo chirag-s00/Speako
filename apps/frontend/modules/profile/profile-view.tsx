@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { profileResponseSchema, type Profile } from "@speako/common/common";
 import {
   UserRound,
   Mail,
-  ShieldCheck,
   RefreshCw,
 } from "lucide-react";
-import { env } from "@/lib/env";
+import { getProfile } from "./lib/fetchProfile";
+import { type Profile } from "@speako/common/common";
 
-const API_URL = env.API_URL;
+
 
 export function ProfileView() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -22,33 +21,9 @@ export function ProfileView() {
       setLoading(true);
       setError(null);
 
-      if (!API_URL) {
-        throw new Error("API URL is not configured");
-      }
-
-      const response = await fetch(`${API_URL}/me`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Please log in to view your profile.");
-        }
-
-        throw new Error("Failed to load your profile.");
-      }
-
-      const data: unknown = await response.json();
-      const parsed = profileResponseSchema.safeParse(data);
-
-      if (!parsed.success) {
-        console.error("Invalid profile response:", parsed.error);
-        throw new Error("The server returned invalid profile data.");
-      }
-
-      setProfile(parsed.data.user);
+      const user = await getProfile();
+    
+      setProfile(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -109,9 +84,9 @@ export function ProfileView() {
           Profile
         </h1>
 
-        <p className="mt-2 text-sm text-white/50">
+        {/* <p className="mt-2 text-sm text-white/50">
           Manage your account information and view your account details.
-        </p>
+        </p> */}
       </header>
 
       {/* Profile overview */}
@@ -129,11 +104,6 @@ export function ProfileView() {
             <p className="mt-1 break-all text-sm text-white/50">
               {profile.email}
             </p>
-
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1 text-xs text-emerald-300">
-              <ShieldCheck size={14} />
-              Account active
-            </div>
           </div>
         </div>
       </section>
@@ -157,10 +127,6 @@ export function ProfileView() {
 
         </div>
       </section>
-
-      <p className="text-xs leading-5 text-white/35">
-        Your profile information is retrieved securely from your account.
-      </p>
     </main>
   );
 }

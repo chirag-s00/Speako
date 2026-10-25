@@ -102,3 +102,14 @@ export async function me(req:express.Request, res: express.Response){
         return res.status(500).json({message: "Failed to validate session"});
     }
 }
+
+export async function logout(req:express.Request, res:express.Response){
+    res.clearCookie("token",{
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+    })
+
+    return res.status(200).json({message: "Logged out successfully"});
+}

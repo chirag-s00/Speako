@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { Home, Layers, BarChart3, User } from "lucide-react";
+import { LogoutButton } from "../logout/logout-button";
 
 const NAV: ReadonlyArray<{ Icon: LucideIcon; label: string; href: string }> = [
   { Icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -44,6 +45,9 @@ export function AppSidebar() {
           );
         })}
       </nav>
+      <div className="mt-auto border-t border-white/[.07] pt-4">
+        <LogoutButton />
+      </div>
     </aside>
   );
 }
