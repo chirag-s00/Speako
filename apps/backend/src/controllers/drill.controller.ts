@@ -4,6 +4,8 @@ import { prisma } from "@speako/db/client";
 import { publishJob } from "../services/publisher";
 import { jobIdSchema } from "@speako/common/common";
 
+const MAX_DURATION = 90;
+
 export async function drills( req: express.Request,res: express.Response) {
   try {
     const { key, mode, prompt, durationSec } = req.body;
@@ -11,6 +13,17 @@ export async function drills( req: express.Request,res: express.Response) {
     if(!userId){
       return res.status(404).json({ error: "Invalid User"})
     }
+
+    if (
+      typeof durationSec !== "number" ||
+      !Number.isFinite(durationSec) ||
+      durationSec > MAX_DURATION
+    ) {
+      return res.status(400).json({
+        error: `Duration must be less than ${MAX_DURATION} seconds.`,
+      });
+    }
+
     if (
       typeof key !== "string" ||
       !key.startsWith(`tmp/${userId}/`)

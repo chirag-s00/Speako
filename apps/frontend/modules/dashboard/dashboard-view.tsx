@@ -182,44 +182,29 @@ export default function DashboardView({
               <h2 className="font-['Fraunces',serif] text-2xl font-semibold tracking-tight">
                 Your progress
               </h2>
-              <Link
-                href="/progress"
-                className="inline-flex items-center gap-2 rounded-full border border-white/[.07] bg-white/[.03] px-4 py-2.5 text-sm text-[#cfc8bb] transition hover:border-[#f0a65c]/50 hover:text-[#f0a65c]"
-              >
-                View history <ArrowRight size={15} />
-              </Link>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard
                 label="Completed drills"
                 value={String(data.completedDrills)}
-                hint={
-                  data.nextCursor
-                    ? "Latest results only"
-                    : "All available results"
-                }
                 Icon={MessageSquare}
               />
-
               <StatCard
                 label="Average score"
                 value={`${data.averageScore}%`}
-                hint="Across loaded drills"
                 Icon={Star}
               />
 
               <StatCard
                 label="Average fluency"
                 value={`${data.averageFluency}%`}
-                hint="Across loaded drills"
                 Icon={TrendingUp}
               />
 
               <StatCard
                 label="Speaking time"
                 value={formatDuration(data.totalSpeakingSeconds)}
-                hint="Across loaded drills"
                 Icon={Clock3}
               />
             </div>
@@ -376,12 +361,10 @@ export default function DashboardView({
 function StatCard({
   label,
   value,
-  hint,
   Icon,
 }: {
   label: string;
   value: string;
-  hint: string;
   Icon: typeof MessageSquare;
 }) {
   return (
@@ -397,8 +380,6 @@ function StatCard({
       <p className="mt-4 break-words font-['Fraunces',serif] text-3xl font-semibold tracking-tight">
         {value}
       </p>
-
-      <p className="mt-2 text-xs text-[#a79f92]">{hint}</p>
     </div>
   );
 }
